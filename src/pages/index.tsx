@@ -41,13 +41,27 @@ export default function Home() {
           <div className="flex flex-col gap-4">
             <button
               onClick={() => {
-                window.location.href =
-                  "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://enrollment-unmsm-379762c4b258.herokuapp.com/grant-code&response_type=code&client_id=911851558763-tkev88gg88t3g0387qpvbktlu4beok1t.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline";
+                const params = new URLSearchParams({
+                  redirect_uri: "http://localhost:8080/grant-code",
+                  response_type: "code",
+                  client_id:
+                    "911851558763-tkev88gg88t3g0387qpvbktlu4beok1t.apps.googleusercontent.com",
+                  scope: [
+                    "https://www.googleapis.com/auth/userinfo.email",
+                    "https://www.googleapis.com/auth/userinfo.profile",
+                    "openid",
+                  ].join(" "),
+                  access_type: "offline",
+                  prompt: "consent",
+                });
+
+                window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
               }}
               className="w-64 rounded-lg border bg-[#C43E1C] px-4 py-2 text-base font-semibold text-white hover:text-white hover:bg-[#D77E67] hover:border-transparent"
             >
               Google
             </button>
+
             <button className="w-64 rounded-lg border bg-[#1199D3] px-4 py-2 text-base font-semibold text-white hover:text-white hover:bg-[#60BBE1] hover:border-transparent">
               Facebook
             </button>
