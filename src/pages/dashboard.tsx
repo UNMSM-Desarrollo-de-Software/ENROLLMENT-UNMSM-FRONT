@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import Layout from "./utils/layout";
+import FormTitle from "./utils/formTitle";
+import TrackingBar from "./utils/trackingBar";
 
 interface Enrollment {
   id: number;
@@ -41,15 +44,18 @@ export default function DashboardPage() {
   if (loading) return <p>Cargando...</p>;
   if (!enrollments || enrollments.length === 0) return <p>No hay resultados</p>;
   return (
-    <div>
-      <h2>Matrículas encontradas:</h2>
-      <ul>
-        {enrollments.map((e, index) => (
-          <li key={index}>
-            Curso: {e.status}, Créditos: {e.period}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <Layout>
+        <FormTitle text="Matrículas" />
+        <ul>
+          {enrollments.map((e, index) => (
+            <li key={index}>
+              Curso: {e.status}, Créditos: {e.period}
+            </li>
+          ))}
+        </ul>
+        <TrackingBar />
+      </Layout>
+    </>
   );
 }

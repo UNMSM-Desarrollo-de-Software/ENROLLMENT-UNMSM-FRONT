@@ -1,4 +1,4 @@
-import NavBar from './nav-bar';
+import NavBar from "./navbar";
 
 export default function Layout({
   children, // will be a page or nested layout
