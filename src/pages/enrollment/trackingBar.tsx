@@ -2,6 +2,9 @@ import { useState } from "react";
 import Step3_TuitionPayment from "./stepContent/Step3_TuitionPayment";
 import { StepProps } from "@/types";
 import Step0_SelectCourses from "./stepContent/Step0_SelectCourses";
+import Step1_PaymentPlan from "./stepContent/Step1_PaymentPlan";
+import Step2_Commitment from "./stepContent/Step2_Commitment";
+import Step4_Certificate from "./stepContent/Step4_Certificate";
 
 type Step = {
   label: string;
@@ -39,13 +42,73 @@ export default function TrackingBar() {
       case 0:
         return <Step0_SelectCourses {...stepProps} />;
       case 1:
-        return null;
+        return <Step1_PaymentPlan {...stepProps} />;
       case 2:
-        return null;
+        return (
+          <Step2_Commitment
+            {...stepProps}
+            cuotas={[
+              { numero: 1, fecha: "2025-08-10", monto: 250 },
+              { numero: 2, fecha: "2025-09-10", monto: 250 },
+            ]}
+          />
+        );
+
       case 3:
-        return <Step3_TuitionPayment {...stepProps} />;
+        return (
+          <Step3_TuitionPayment
+            {...stepProps}
+            cursos={[
+              {
+                codigo: "CUR101",
+                nombre: "Programación I",
+                creditos: 4,
+                docente: "Ing. Quispe",
+                horarios: [
+                  { dia: "Jueves", inicio: "10:00", fin: "12:00" },
+                  { dia: "Viernes", inicio: "13:00", fin: "15:00" },
+                ],
+              },
+              // otros cursos seleccionados...
+            ]}
+            cuotas={[
+              { numero: 1, fecha: "2025-08-10", monto: 250 },
+              { numero: 2, fecha: "2025-09-10", monto: 210 },
+            ]}
+            montoTotal={460}
+          />
+        );
+
       case 4:
-        return null;
+        return (
+          <Step4_Certificate
+            {...stepProps}
+            alumno={{
+              nombre: "Juan Pérez",
+              codigo: "20251234",
+              carrera: "Ingeniería de Sistemas",
+            }}
+            cuotas={[
+              { numero: 1, fecha: "2025-08-10", monto: 250 },
+              { numero: 2, fecha: "2025-09-10", monto: 250 },
+            ]}
+            cursos={[
+              {
+                codigo: "CUR101",
+                nombre: "Programación I",
+                creditos: 4,
+                docente: "Ing. Quispe",
+                horarios: [
+                  { dia: "Jueves", inicio: "10:00", fin: "12:00" },
+                  { dia: "Viernes", inicio: "13:00", fin: "15:00" },
+                ],
+              },
+              // otros cursos seleccionados...
+            ]}
+            montoTotal={500}
+          />
+        );
+
       default:
         return null;
     }

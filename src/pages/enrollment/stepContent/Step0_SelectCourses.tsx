@@ -122,6 +122,19 @@ export default function Step0_SelectCourses({
     }
   );
 
+  // Agrupar por celda para detectar conflictos
+  const celdasMap = new Map<string, { curso: string; docente: string }[]>();
+  bloquesSeleccionados.forEach((bloque) => {
+    const clave = `${bloque.dia}-${bloque.inicio}`;
+    if (!celdasMap.has(clave)) {
+      celdasMap.set(clave, []);
+    }
+    celdasMap.get(clave)!.push({
+      curso: bloque.curso!,
+      docente: bloque.docente!,
+    });
+  });
+
   return (
     <div>
       {completed ? (
@@ -129,8 +142,8 @@ export default function Step0_SelectCourses({
           ✅ Selección registrada.
         </div>
       ) : (
-        <div className="flex flex-row gap-2 w-full">
-          <div className="w-1/3">
+        <div className="flex flex-col md:flex-row gap-4 w-full">
+          <div className="md:w-1/3 w-full">
             <h3 className="text-md font-semibold mb-2">
               Seleccione cursos y docentes:
             </h3>
@@ -180,34 +193,36 @@ export default function Step0_SelectCourses({
 
                 {/* Celdas */}
                 {horas.map((hora) => (
-                  <>
+                  <div key={hora} className="contents">
                     <div className="border p-2 text-sm bg-gray-50">{hora}</div>
                     {dias.map((dia) => {
-                      const bloque = bloquesSeleccionados.find(
-                        (b) => b.dia === dia && b.inicio === hora
-                      );
+                      const clave = `${dia}-${hora}`;
+                      const bloques = celdasMap.get(clave) || [];
+
+                      const isConflict = bloques.length > 1;
+
                       return (
                         <div
-                          key={`${dia}-${hora}`}
-                          className={`border p-1 text-xs text-center h-[48px] ${
-                            bloque
-                              ? "bg-blue-100 text-blue-900 font-medium"
+                          key={clave}
+                          className={`border p-1 text-xs text-center h-[48px] overflow-hidden ${
+                            bloques.length
+                              ? isConflict
+                                ? "bg-red-100 text-red-900 font-bold"
+                                : "bg-blue-100 text-blue-900 font-medium"
                               : ""
                           }`}
                         >
-                          {bloque && (
-                            <>
-                              {bloque.curso}
+                          {bloques.map((b, i) => (
+                            <div key={i}>
+                              {b.curso}
                               <br />
-                              <span className="text-[11px]">
-                                {bloque.docente}
-                              </span>
-                            </>
-                          )}
+                              <span className="text-[11px]">{b.docente}</span>
+                            </div>
+                          ))}
                         </div>
                       );
                     })}
-                  </>
+                  </div>
                 ))}
               </div>
             </div>
