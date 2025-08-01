@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "./utils/layout";
 import FormTitle from "./utils/formTitle";
-import TrackingBar from "./utils/trackingBar";
+import TrackingBar from "./enrollment/trackingBar";
 
 interface Enrollment {
   id: number;

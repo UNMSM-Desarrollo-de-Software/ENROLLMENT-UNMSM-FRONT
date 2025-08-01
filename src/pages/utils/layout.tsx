@@ -12,7 +12,7 @@ export default function Layout({
         {/**Barra de menú */}
         <NavBar />
         {/* Contenedor principal ubicadó a la derecha del menú en dispositivos de pantalla grande y en toda la pantalla en móviles */}
-        <div className="h-full w-full p-6 flex flex-col gap-4 bg-white rounded-lg drop-shadow-lg md:p-12">
+        <div className="flex-1 overflow-auto p-6 flex flex-col gap-4 bg-white rounded-lg drop-shadow-lg md:p-12">
           {children}
         </div>
       </div>
