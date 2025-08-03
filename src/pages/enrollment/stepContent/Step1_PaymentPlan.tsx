@@ -1,5 +1,6 @@
 import { Step1Props } from "@/types";
 import { useState, useEffect } from "react";
+import { updateEnrollmentStatus } from "@/utils/enrollmentService";
 
 export default function Step1_PaymentPlan({
   completed,
@@ -87,59 +88,19 @@ export default function Step1_PaymentPlan({
     }
   };
 
-  // Función para actualizar el status del enrollment a "2"
-  const updateEnrollmentStatusToPaymentPlan = async () => {
-    try {
-      const enrollmentStr = localStorage.getItem('enrollment') || localStorage.getItem('currentEnrollment');
-      if (!enrollmentStr) {
-        console.warn('No enrollment found in localStorage');
-        return;
-      }
-
-      const enrollment = JSON.parse(enrollmentStr);
-      
-      // Solo actualizar si el status no es ya "2" o superior
-      if (parseInt(enrollment.status) >= 2) {
-        console.log('Enrollment status is already 2 or higher, skipping update');
-        return;
-      }
-
-      const response = await fetch(`http://localhost:8080/enrollments/${enrollment.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          status: "2",
-          payment: {
-            id: enrollment.payment.id
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error updating enrollment status: ${response.status}`);
-      }
-
-      const updatedEnrollment = await response.json();
-      
-      // Actualizar el enrollment en localStorage
-      localStorage.setItem('enrollment', JSON.stringify(updatedEnrollment));
-      localStorage.setItem('currentEnrollment', JSON.stringify(updatedEnrollment));
-      
-      console.log('Enrollment status updated to "2" successfully');
-      
-    } catch (error) {
-      console.error('Error updating enrollment status to "2":', error);
-    }
-  };
-
   // Actualizar status del enrollment cuando se monta el componente
   useEffect(() => {
-    if (!completed && !locked) {
-      updateEnrollmentStatusToPaymentPlan();
-    }
+    const updateStatus = async () => {
+      if (!completed && !locked) {
+        try {
+          await updateEnrollmentStatus("2");
+        } catch (error) {
+          console.error('Error updating enrollment status:', error);
+        }
+      }
+    };
+
+    updateStatus();
   }, [completed, locked]);
 
   // Actualizar monto total cuando cambien los cursos seleccionados
