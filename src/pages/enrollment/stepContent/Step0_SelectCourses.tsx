@@ -247,26 +247,41 @@ export default function Step0_SelectCourses({
       const curso = cursos.find((c) => c.codigo === codigo);
       const docente = curso?.opciones[idx];
       return (
-        docente?.horarios.map((h) => ({
-          ...h,
-          curso: curso?.nombre,
-          docente: docente?.nombre,
-        })) || []
+        docente?.horarios.flatMap((h) => {
+          // Calcular todas las horas que abarca el horario
+          const horaInicio = parseInt(h.inicio.split(':')[0]);
+          const horaFin = parseInt(h.fin.split(':')[0]);
+          const horasAbarcadas = [];
+          
+          // Solo iterar hasta la hora anterior a la hora de fin
+          for (let hora = horaInicio; hora < horaFin; hora++) {
+            horasAbarcadas.push({
+              dia: h.dia,
+              inicio: `${String(hora).padStart(2, "0")}:00`,
+              fin: h.fin,
+              curso: curso?.nombre,
+              docente: docente?.nombre,
+              isStart: hora === horaInicio, // Marca si es la primera celda del bloque
+              isEnd: hora === horaFin - 1,   // Marca si es la última celda del bloque
+              totalHours: horaFin - horaInicio, // Total de horas del bloque
+              hourIndex: hora - horaInicio,     // Índice de la hora dentro del bloque
+            });
+          }
+          
+          return horasAbarcadas;
+        }) || []
       );
     }
   );
 
   // Agrupar por celda para detectar conflictos
-  const celdasMap = new Map<string, { curso: string; docente: string }[]>();
+  const celdasMap = new Map<string, any[]>();
   bloquesSeleccionados.forEach((bloque) => {
     const clave = `${bloque.dia}-${bloque.inicio}`;
     if (!celdasMap.has(clave)) {
       celdasMap.set(clave, []);
     }
-    celdasMap.get(clave)!.push({
-      curso: bloque.curso!,
-      docente: bloque.docente!,
-    });
+    celdasMap.get(clave)!.push(bloque);
   });
 
   // Mostrar estado de carga
@@ -387,28 +402,44 @@ export default function Step0_SelectCourses({
                               const clave = `${dia}-${hora}`;
                               const bloques = celdasMap.get(clave) || [];
                               const isConflict = bloques.length > 1;
+                              
+                              // Si hay bloques y no es el inicio del bloque, ocultar la celda
+                              if (bloques.length > 0 && !bloques[0].isStart) {
+                                return null; // No renderizar las celdas intermedias
+                              }
 
                               return (
                                 <div
                                   key={clave}
-                                  className={`border-r border-b border-gray-200 last:border-r-0 p-3 text-xs text-center h-[52px] overflow-hidden min-w-[180px] ${
+                                  className={`border-r border-b border-gray-200 last:border-r-0 p-2 text-xs text-center min-w-[180px] relative ${
                                     bloques.length
                                       ? isConflict
                                         ? "bg-red-100 text-red-900 font-bold border-red-300"
                                         : "bg-blue-100 text-blue-900 font-medium border-blue-300"
                                       : "bg-white"
                                   }`}
+                                  style={{
+                                    height: bloques.length > 0 && bloques[0].isStart 
+                                      ? `${52 * bloques[0].totalHours}px` 
+                                      : '52px',
+                                    gridRowEnd: bloques.length > 0 && bloques[0].isStart 
+                                      ? `span ${bloques[0].totalHours}` 
+                                      : 'span 1'
+                                  }}
                                 >
-                                  {bloques.map((b, i) => (
-                                    <div key={i} className="leading-tight">
-                                      <div className="font-medium text-[11px] truncate" title={b.curso}>
-                                        {b.curso}
+                                  {bloques.length > 0 && bloques[0].isStart && (
+                                    <div className="absolute inset-0 flex flex-col justify-center items-center p-2">
+                                      <div className="font-medium text-[11px] text-center leading-tight" title={bloques[0].curso}>
+                                        {bloques[0].curso}
                                       </div>
-                                      <div className="text-[10px] text-gray-600 truncate" title={b.docente}>
-                                        {b.docente}
+                                      <div className="text-[10px] text-gray-600 text-center mt-1" title={bloques[0].docente}>
+                                        {bloques[0].docente}
+                                      </div>
+                                      <div className="text-[9px] text-gray-500 mt-1">
+                                        {bloques[0].inicio} - {bloques[0].fin}
                                       </div>
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               );
                             })}
