@@ -255,39 +255,6 @@ export default function Step0_SelectCourses({
     }
   };
 
-  // Función para actualizar el status del enrollment existente
-  const updateEnrollmentStatus = async (enrollmentId: number, paymentId: number) => {
-    try {
-      const response = await fetch(`http://localhost:8080/enrollments/${enrollmentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          status: "2",
-          payment: {
-            id: paymentId
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error updating enrollment status: ${response.status}`);
-      }
-
-      const updatedEnrollment = await response.json();
-      
-      // Actualizar el enrollment en localStorage
-      localStorage.setItem('enrollment', JSON.stringify(updatedEnrollment));
-      
-      return updatedEnrollment;
-    } catch (error) {
-      console.error('Error updating enrollment status:', error);
-      throw error;
-    }
-  };
-
   // Función para obtener o crear enrollment
   const getOrCreateEnrollment = async () => {
     try {
@@ -296,9 +263,7 @@ export default function Step0_SelectCourses({
       if (existingEnrollmentStr) {
         const existingEnrollment = JSON.parse(existingEnrollmentStr);
         console.log('Using existing enrollment:', existingEnrollment);
-        
-        // Actualizar el status a "2" si existe enrollment
-        return await updateEnrollmentStatus(existingEnrollment.id, existingEnrollment.payment.id);
+        return existingEnrollment;
       }
 
       // Si no existe, crear uno nuevo
