@@ -11,7 +11,19 @@ export interface Step0Props extends StepProps {
 
 export interface Step1Props extends StepProps {
   cursosSeleccionados?: CursoSeleccionado[];
+  onPlanChange?: (plan: PlanPagos) => void;
 }
+
+export interface Step2Props extends StepProps {
+  cursosSeleccionados?: CursoSeleccionado[];
+  planPagos?: PlanPagos;
+}
+
+export type PlanPagos = {
+  montoTotal: number;
+  numeroCuotas: number;
+  cuotas: Cuota[];
+};
 
 // types.ts
 export type Horario = {

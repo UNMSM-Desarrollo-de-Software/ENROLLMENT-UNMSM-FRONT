@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Step3_TuitionPayment from "./stepContent/Step3_TuitionPayment";
-import { StepProps, CursoSeleccionado } from "@/types";
+import { StepProps, CursoSeleccionado, PlanPagos } from "@/types";
 import Step0_SelectCourses from "./stepContent/Step0_SelectCourses";
 import Step1_PaymentPlan from "./stepContent/Step1_PaymentPlan";
 import Step2_Commitment from "./stepContent/Step2_Commitment";
@@ -23,6 +23,7 @@ export default function TrackingBar() {
 
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
   const [cursosSeleccionados, setCursosSeleccionados] = useState<CursoSeleccionado[]>([]);
+  const [planPagos, setPlanPagos] = useState<PlanPagos | undefined>(undefined);
 
   const onCompleteStep = (index: number) => {
     setSteps((prev) =>
@@ -33,6 +34,10 @@ export default function TrackingBar() {
 
   const handleSelectionChange = (seleccion: CursoSeleccionado[]) => {
     setCursosSeleccionados(seleccion);
+  };
+
+  const handlePlanChange = (plan: PlanPagos) => {
+    setPlanPagos(plan);
   };
 
   const renderStepContent = (index: number) => {
@@ -47,15 +52,13 @@ export default function TrackingBar() {
       case 0:
         return <Step0_SelectCourses {...stepProps} onSelectionChange={handleSelectionChange} />;
       case 1:
-        return <Step1_PaymentPlan {...stepProps} cursosSeleccionados={cursosSeleccionados} />;
+        return <Step1_PaymentPlan {...stepProps} cursosSeleccionados={cursosSeleccionados} onPlanChange={handlePlanChange} />;
       case 2:
         return (
           <Step2_Commitment
             {...stepProps}
-            cuotas={[
-              { numero: 1, fecha: "2025-08-10", monto: 250 },
-              { numero: 2, fecha: "2025-09-10", monto: 250 },
-            ]}
+            cursosSeleccionados={cursosSeleccionados}
+            planPagos={planPagos}
           />
         );
 

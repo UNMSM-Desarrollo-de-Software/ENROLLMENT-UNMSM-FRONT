@@ -6,6 +6,7 @@ export default function Step1_PaymentPlan({
   locked,
   onComplete,
   cursosSeleccionados = [],
+  onPlanChange,
 }: Step1Props) {
   // Calcular monto total basado en créditos (asumiendo S/. 100 por crédito)
   const PRECIO_POR_CREDITO = 100;
@@ -38,6 +39,21 @@ export default function Step1_PaymentPlan({
     });
     setCuotas(nuevasCuotas);
   };
+
+  // Notificar cambios en el plan de pagos
+  useEffect(() => {
+    if (cuotas.length > 0 && onPlanChange) {
+      onPlanChange({
+        montoTotal,
+        numeroCuotas,
+        cuotas: cuotas.map(cuota => ({
+          numero: cuota.numero,
+          fecha: cuota.vencimiento,
+          monto: cuota.monto
+        }))
+      });
+    }
+  }, [cuotas, montoTotal, numeroCuotas, onPlanChange]);
 
   return (
     <div className="w-full">
