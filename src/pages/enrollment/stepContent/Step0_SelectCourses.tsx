@@ -1,4 +1,4 @@
-import { StepProps } from "@/types";
+import { Step0Props, CursoSeleccionado } from "@/types";
 import { useState, useEffect } from "react";
 
 type Horario = {
@@ -181,7 +181,8 @@ export default function Step0_SelectCourses({
   completed,
   locked,
   onComplete,
-}: StepProps) {
+  onSelectionChange,
+}: Step0Props) {
   const [selecciones, setSelecciones] = useState<Record<string, number>>({});
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,6 +220,27 @@ export default function Step0_SelectCourses({
   const handleSeleccion = (codigo: string, index: number) => {
     setSelecciones((prev) => ({ ...prev, [codigo]: index }));
   };
+
+  // Crear array de cursos seleccionados cuando cambie la selección
+  useEffect(() => {
+    const cursosSeleccionados: CursoSeleccionado[] = Object.entries(selecciones).map(
+      ([codigo, idx]) => {
+        const curso = cursos.find((c) => c.codigo === codigo);
+        const docente = curso?.opciones[idx];
+        return {
+          codigo: curso?.codigo || "",
+          nombre: curso?.nombre || "",
+          creditos: curso?.creditos || 0,
+          docente: docente?.nombre || "",
+          horarios: docente?.horarios || []
+        };
+      }
+    ).filter(curso => curso.codigo !== ""); // Filtrar cursos válidos
+
+    if (onSelectionChange) {
+      onSelectionChange(cursosSeleccionados);
+    }
+  }, [selecciones, cursos, onSelectionChange]);
 
   const bloquesSeleccionados = Object.entries(selecciones).flatMap(
     ([codigo, idx]) => {

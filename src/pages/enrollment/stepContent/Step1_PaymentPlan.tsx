@@ -1,16 +1,29 @@
-import { StepProps } from "@/types";
-import { useState } from "react";
+import { Step1Props } from "@/types";
+import { useState, useEffect } from "react";
 
 export default function Step1_PaymentPlan({
   completed,
   locked,
   onComplete,
-}: StepProps) {
-  const [montoTotal, setMontoTotal] = useState(1200);
+  cursosSeleccionados = [],
+}: Step1Props) {
+  // Calcular monto total basado en créditos (asumiendo S/. 100 por crédito)
+  const PRECIO_POR_CREDITO = 100;
+  const totalCreditos = cursosSeleccionados.reduce((sum, curso) => sum + curso.creditos, 0);
+  const montoCalculado = totalCreditos * PRECIO_POR_CREDITO;
+
+  const [montoTotal, setMontoTotal] = useState(montoCalculado);
   const [numeroCuotas, setNumeroCuotas] = useState(3);
   const [cuotas, setCuotas] = useState<
     { numero: number; monto: number; vencimiento: string }[]
   >([]);
+
+  // Actualizar monto total cuando cambien los cursos seleccionados
+  useEffect(() => {
+    if (montoCalculado > 0 && !completed) {
+      setMontoTotal(montoCalculado);
+    }
+  }, [montoCalculado, completed]);
 
   const generarPlan = () => {
     const hoy = new Date();
@@ -37,6 +50,23 @@ export default function Step1_PaymentPlan({
           <h3 className="text-lg font-semibold mb-2">
             Configuración del plan de pagos:
           </h3>
+
+          {cursosSeleccionados.length > 0 && (
+            <div className="mb-4 p-4 bg-gray-50 rounded">
+              <h4 className="font-medium mb-2">Cursos seleccionados:</h4>
+              <div className="space-y-2">
+                {cursosSeleccionados.map((curso, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{curso.nombre}</span>
+                    <span>{curso.creditos} créditos - S/. {curso.creditos * PRECIO_POR_CREDITO}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-300 font-semibold">
+                Total: {totalCreditos} créditos - S/. {montoCalculado}
+              </div>
+            </div>
+          )}
 
           <div className="mb-4">
             <label className="block mb-1 font-medium">

@@ -5,6 +5,14 @@ export interface StepProps {
   onComplete: () => void;
 }
 
+export interface Step0Props extends StepProps {
+  onSelectionChange?: (seleccion: CursoSeleccionado[]) => void;
+}
+
+export interface Step1Props extends StepProps {
+  cursosSeleccionados?: CursoSeleccionado[];
+}
+
 // types.ts
 export type Horario = {
   dia: "Lunes" | "Martes" | "Miércoles" | "Jueves" | "Viernes";
