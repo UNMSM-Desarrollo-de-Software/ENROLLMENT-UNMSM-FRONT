@@ -255,6 +255,62 @@ export default function Step0_SelectCourses({
     }
   };
 
+  // Función para actualizar el status del enrollment existente
+  const updateEnrollmentStatus = async (enrollmentId: number, paymentId: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/enrollments/${enrollmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: "2",
+          payment: {
+            id: paymentId
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error updating enrollment status: ${response.status}`);
+      }
+
+      const updatedEnrollment = await response.json();
+      
+      // Actualizar el enrollment en localStorage
+      localStorage.setItem('enrollment', JSON.stringify(updatedEnrollment));
+      
+      return updatedEnrollment;
+    } catch (error) {
+      console.error('Error updating enrollment status:', error);
+      throw error;
+    }
+  };
+
+  // Función para obtener o crear enrollment
+  const getOrCreateEnrollment = async () => {
+    try {
+      // Verificar si ya existe un enrollment en localStorage
+      const existingEnrollmentStr = localStorage.getItem('enrollment');
+      if (existingEnrollmentStr) {
+        const existingEnrollment = JSON.parse(existingEnrollmentStr);
+        console.log('Using existing enrollment:', existingEnrollment);
+        
+        // Actualizar el status a "2" si existe enrollment
+        return await updateEnrollmentStatus(existingEnrollment.id, existingEnrollment.payment.id);
+      }
+
+      // Si no existe, crear uno nuevo
+      console.log('Creating new enrollment');
+      return await createEnrollment();
+      
+    } catch (error) {
+      console.error('Error in getOrCreateEnrollment:', error);
+      throw error;
+    }
+  };
+
   // Función para crear enrollment-sections
   const createEnrollmentSections = async (enrollmentId: number, selectedCourses: any[]) => {
     try {
@@ -321,8 +377,8 @@ export default function Step0_SelectCourses({
         throw new Error('No hay cursos seleccionados');
       }
 
-      // 1. Crear enrollment
-      const enrollment = await createEnrollment();
+      // 1. Obtener enrollment existente o crear uno nuevo
+      const enrollment = await getOrCreateEnrollment();
       
       // 2. Crear enrollment-sections para cada curso seleccionado
       await createEnrollmentSections(enrollment.id, cursosSeleccionados);
