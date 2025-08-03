@@ -66,24 +66,8 @@ export default function TrackingBar() {
         return (
           <Step3_TuitionPayment
             {...stepProps}
-            cursos={[
-              {
-                codigo: "CUR101",
-                nombre: "Programación I",
-                creditos: 4,
-                docente: "Ing. Quispe",
-                horarios: [
-                  { dia: "Jueves", inicio: "10:00", fin: "12:00" },
-                  { dia: "Viernes", inicio: "13:00", fin: "15:00" },
-                ],
-              },
-              // otros cursos seleccionados...
-            ]}
-            cuotas={[
-              { numero: 1, fecha: "2025-08-10", monto: 250 },
-              { numero: 2, fecha: "2025-09-10", monto: 210 },
-            ]}
-            montoTotal={460}
+            cursosSeleccionados={cursosSeleccionados}
+            planPagos={planPagos}
           />
         );
 
@@ -91,29 +75,13 @@ export default function TrackingBar() {
         return (
           <Step4_Certificate
             {...stepProps}
+            cursosSeleccionados={cursosSeleccionados}
+            planPagos={planPagos}
             alumno={{
               nombre: "Juan Pérez",
               codigo: "20251234",
               carrera: "Ingeniería de Sistemas",
             }}
-            cuotas={[
-              { numero: 1, fecha: "2025-08-10", monto: 250 },
-              { numero: 2, fecha: "2025-09-10", monto: 250 },
-            ]}
-            cursos={[
-              {
-                codigo: "CUR101",
-                nombre: "Programación I",
-                creditos: 4,
-                docente: "Ing. Quispe",
-                horarios: [
-                  { dia: "Jueves", inicio: "10:00", fin: "12:00" },
-                  { dia: "Viernes", inicio: "13:00", fin: "15:00" },
-                ],
-              },
-              // otros cursos seleccionados...
-            ]}
-            montoTotal={500}
           />
         );
 

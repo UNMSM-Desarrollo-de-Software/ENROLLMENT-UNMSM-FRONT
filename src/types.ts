@@ -19,6 +19,17 @@ export interface Step2Props extends StepProps {
   planPagos?: PlanPagos;
 }
 
+export interface Step3Props extends StepProps {
+  cursosSeleccionados?: CursoSeleccionado[];
+  planPagos?: PlanPagos;
+}
+
+export interface Step4Props extends StepProps {
+  cursosSeleccionados?: CursoSeleccionado[];
+  planPagos?: PlanPagos;
+  alumno?: DatosAlumno;
+}
+
 export type PlanPagos = {
   montoTotal: number;
   numeroCuotas: number;
