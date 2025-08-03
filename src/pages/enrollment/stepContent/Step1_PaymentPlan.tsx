@@ -1,5 +1,6 @@
 import { Step1Props } from "@/types";
 import { useState, useEffect } from "react";
+import { updateEnrollmentStatus } from "@/utils/enrollmentService";
 
 export default function Step1_PaymentPlan({
   completed,
@@ -18,6 +19,89 @@ export default function Step1_PaymentPlan({
   const [cuotas, setCuotas] = useState<
     { numero: number; monto: number; vencimiento: string }[]
   >([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Función para crear el plan de cuotas en el servidor
+  const createFeePlan = async () => {
+    try {
+      const enrollmentStr = localStorage.getItem('enrollment') || localStorage.getItem('currentEnrollment');
+      if (!enrollmentStr) {
+        throw new Error('No enrollment found in localStorage');
+      }
+
+      const enrollment = JSON.parse(enrollmentStr);
+      
+      // Calcular el monto por cuota
+      const feeAmount = (montoTotal / numeroCuotas).toFixed(2);
+
+      const response = await fetch('http://localhost:8080/fee-plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          enrollment: {
+            id: enrollment.id
+          },
+          feeQuantity: numeroCuotas,
+          feeAmount: feeAmount
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error creating fee plan: ${response.status}`);
+      }
+
+      const feePlan = await response.json();
+      console.log('Fee plan created successfully:', feePlan);
+      
+      return feePlan;
+    } catch (error) {
+      console.error('Error creating fee plan:', error);
+      throw error;
+    }
+  };
+
+  // Función para manejar la confirmación del plan de pagos
+  const handleConfirmPaymentPlan = async () => {
+    try {
+      setSubmitting(true);
+
+      // Validar que tengamos datos necesarios
+      if (cuotas.length === 0) {
+        alert('Por favor, genere un plan de pagos válido');
+        return;
+      }
+
+      // Crear el plan de cuotas en el servidor
+      await createFeePlan();
+
+      // Si todo sale bien, pasar al siguiente paso
+      onComplete();
+      
+    } catch (error) {
+      console.error('Error confirming payment plan:', error);
+      alert('Error al confirmar el plan de pagos. Por favor, inténtelo nuevamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Actualizar status del enrollment cuando se monta el componente
+  useEffect(() => {
+    const updateStatus = async () => {
+      if (!completed && !locked) {
+        try {
+          await updateEnrollmentStatus("2");
+        } catch (error) {
+          console.error('Error updating enrollment status:', error);
+        }
+      }
+    };
+
+    updateStatus();
+  }, [completed, locked]);
 
   // Actualizar monto total cuando cambien los cursos seleccionados
   useEffect(() => {
@@ -177,10 +261,10 @@ export default function Step1_PaymentPlan({
       <div className="flex justify-center mt-8">
         <button
           className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          onClick={onComplete}
-          disabled={locked || cuotas.length === 0}
+          onClick={handleConfirmPaymentPlan}
+          disabled={locked || cuotas.length === 0 || submitting}
         >
-          Confirmar plan de pagos
+          {submitting ? 'Procesando...' : 'Confirmar plan de pagos'}
         </button>
       </div>
 

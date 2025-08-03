@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Step3_TuitionPayment from "./stepContent/Step3_TuitionPayment";
 import { StepProps, CursoSeleccionado, PlanPagos } from "@/types";
 import Step0_SelectCourses from "./stepContent/Step0_SelectCourses";
@@ -27,11 +27,86 @@ export default function TrackingBar() {
   >([]);
   const [planPagos, setPlanPagos] = useState<PlanPagos | undefined>(undefined);
 
+  // Initialize from localStorage on component mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedEnrollment = localStorage.getItem("currentEnrollment");
+        if (savedEnrollment) {
+          const enrollment = JSON.parse(savedEnrollment);
+
+          // Set active step and completed steps based on enrollment status
+          if (enrollment.status === "2") {
+            setActiveIndex(1); // Go to Step 1 (Payment Plan)
+            setSteps((prev) =>
+              prev.map((step, index) => ({
+                ...step,
+                completed: index === 0, // Mark Step 0 as completed
+              }))
+            );
+          } else if (enrollment.status === "3") {
+            setActiveIndex(2); // Go to Step 2 (Commitment)
+            setSteps((prev) =>
+              prev.map((step, index) => ({
+                ...step,
+                completed: index <= 1, // Mark Steps 0-1 as completed
+              }))
+            );
+          } else if (enrollment.status === "4") {
+            setActiveIndex(3); // Go to Step 3 (Payment)
+            setSteps((prev) =>
+              prev.map((step, index) => ({
+                ...step,
+                completed: index <= 2, // Mark Steps 0-2 as completed
+              }))
+            );
+          } else if (enrollment.status === "5") {
+            setActiveIndex(4); // Go to Step 4 (Certificate)
+            setSteps((prev) =>
+              prev.map((step, index) => ({
+                ...step,
+                completed: index <= 3, // Mark Steps 0-3 as completed
+              }))
+            );
+          } else if (enrollment.status === "completed") {
+            setActiveIndex(4); // Stay on Step 4 (Certificate)
+            setSteps((prev) =>
+              prev.map((step) => ({
+                ...step,
+                completed: true, // Mark all steps as completed
+              }))
+            );
+          }
+        }
+
+        // Load other saved data
+        const savedCourses = localStorage.getItem("selectedCourses");
+        if (savedCourses) {
+          setCursosSeleccionados(JSON.parse(savedCourses));
+        }
+
+        const savedPaymentPlan = localStorage.getItem("paymentPlan");
+        if (savedPaymentPlan) {
+          setPlanPagos(JSON.parse(savedPaymentPlan));
+        }
+      } catch (error) {
+        console.error(
+          "Error loading enrollment data from localStorage:",
+          error
+        );
+      }
+    }
+  }, []);
+
   const onCompleteStep = (index: number) => {
+    // Update step completion
     setSteps((prev) =>
       prev.map((s, i) => (i === index ? { ...s, completed: true } : s))
     );
-    setActiveIndex(index + 1 < steps.length ? index + 1 : null);
+
+    // Move to next step
+    const nextIndex = index + 1 < steps.length ? index + 1 : null;
+    setActiveIndex(nextIndex);
   };
 
   const handleSelectionChange = (seleccion: CursoSeleccionado[]) => {
@@ -104,10 +179,12 @@ export default function TrackingBar() {
   };
 
   return (
-    <div className="w-full px-4 py-12">
-      {/* Barra de progreso */}
-      <div className="relative w-full">
-        <div className="absolute top-[14px] left-0 w-full h-[6px] bg-[#D2D2D2] rounded-full z-0"></div>
+    <Layout>
+      <FormTitle text="Matrícula" />
+      <div className="w-full px-4 py-12">
+        {/* Barra de progreso */}
+        <div className="relative w-full">
+          <div className="absolute top-[14px] left-0 w-full h-[6px] bg-[#D2D2D2] rounded-full z-0"></div>
 
         <div className="flex justify-between items-center relative z-10">
           {steps.map((step, index) => {

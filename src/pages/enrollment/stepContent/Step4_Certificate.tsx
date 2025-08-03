@@ -1,7 +1,8 @@
 import { Step4Props } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { updateEnrollmentStatus } from "@/utils/enrollmentService";
 
 export default function Step4_Certificate({
   completed,
@@ -11,6 +12,21 @@ export default function Step4_Certificate({
   alumno,
 }: Step4Props) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  // Actualizar status del enrollment a "5" cuando se monta el componente
+  useEffect(() => {
+    const updateStatus = async () => {
+      if (!locked) {
+        try {
+          await updateEnrollmentStatus("5");
+        } catch (error) {
+          console.error('Error updating enrollment status:', error);
+        }
+      }
+    };
+
+    updateStatus();
+  }, [locked]);
 
   const generarPDF = async (descargar = true) => {
     // Validar que tengamos los datos necesarios
