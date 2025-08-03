@@ -1,5 +1,5 @@
 import { StepProps } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Horario = {
   dia: "Lunes" | "Martes" | "Miércoles" | "Jueves" | "Viernes";
@@ -7,89 +7,169 @@ type Horario = {
   fin: string; // "10:00"
 };
 
+// Tipos para la API
+type ApiCourse = {
+  id: number;
+  code: string;
+  name: string;
+};
+
+type ApiCourseResponse = {
+  course: ApiCourse;
+};
+
+type ApiTeacher = {
+  id: number;
+  firstName: string;
+  lastName: string;
+};
+
+type ApiEnrollmentOption = {
+  id: number;
+  teacher: ApiTeacher;
+  code: string;
+  period: string;
+  schedule: string;
+};
+
+// Tipos internos
 type Docente = {
+  id: number;
   nombre: string;
+  codigo: string;
   horarios: Horario[];
 };
 
 type Curso = {
+  id: number;
   codigo: string;
   nombre: string;
   creditos: number;
   opciones: Docente[];
 };
 
-// Datos simulados
-const cursos: Curso[] = [
-  {
-    codigo: "CUR101",
-    nombre: "Programación I",
-    creditos: 4,
-    opciones: [
+// Función para parsear el horario de la API
+const parseSchedule = (schedule: string): Horario[] => {
+  // Parsear formato "11:00 - 14:00"
+  const [inicio, fin] = schedule.split(' - ').map(time => time.trim());
+  
+  // Asignar días aleatorios para simular horarios completos
+  const diasDisponibles: Array<"Lunes" | "Martes" | "Miércoles" | "Jueves" | "Viernes"> = 
+    ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  
+  // Seleccionar 1-2 días aleatorios
+  const numDias = Math.floor(Math.random() * 2) + 1;
+  const diasSeleccionados: Array<"Lunes" | "Martes" | "Miércoles" | "Jueves" | "Viernes"> = [];
+  
+  for (let i = 0; i < numDias; i++) {
+    const diaIndex = Math.floor(Math.random() * diasDisponibles.length);
+    diasSeleccionados.push(diasDisponibles[diaIndex]);
+    diasDisponibles.splice(diaIndex, 1);
+  }
+  
+  return diasSeleccionados.map(dia => ({
+    dia,
+    inicio,
+    fin
+  }));
+};
+
+// Función para obtener cursos desde la API
+const fetchCourses = async (): Promise<ApiCourse[]> => {
+  try {
+    const response = await fetch(
+      "http://localhost:8080/enrollment-courses?email=jimena.ruizc@unmsm.edu.pe&status=NTA",
       {
-        nombre: "Ing. Quispe",
-        horarios: [
-          { dia: "Jueves", inicio: "10:00", fin: "12:00" },
-          { dia: "Viernes", inicio: "13:00", fin: "15:00" },
-        ],
+        credentials: "include", // si el endpoint está protegido por token
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+    
+    const data: ApiCourseResponse[] = await response.json();
+    return data.map(item => item.course);
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    // Datos de fallback para desarrollo
+    return [
+      { id: 9, code: "CURS009", name: "GESTIÓN DE LA CALIDAD DEL SOFTWARE" },
+      { id: 10, code: "CURS010", name: "ENTORNOS METODOLÓGICOS DE DESARROLLO DE SOFTWARE" },
+      { id: 11, code: "CURS011", name: "DIRECCIÓN DE TESIS II" },
+      { id: 12, code: "CURS012", name: "HABILIDADES DIRECTIVAS EN GESTIÓN" }
+    ];
+  }
+};
+
+// Función para obtener opciones de matrícula por curso
+const fetchEnrollmentOptions = async (courseId: number): Promise<ApiEnrollmentOption[]> => {
+  try {
+    const response = await fetch(`http://localhost:8080/sections?courseId=${courseId}`, {
+      credentials: "include", // si el endpoint está protegido por token
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+    
+    const data: ApiEnrollmentOption[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching enrollment options:', error);
+    // Datos de fallback para desarrollo
+    return [
+      {
+        id: Math.floor(Math.random() * 1000),
+        teacher: {
+          id: Math.floor(Math.random() * 100),
+          firstName: "Luis",
+          lastName: "Fernández"
+        },
+        code: `${courseId}-A`,
+        period: "2025-01",
+        schedule: "08:00 - 10:00"
       },
       {
-        nombre: "Dr. Salazar",
-        horarios: [
-          { dia: "Viernes", inicio: "16:00", fin: "18:00" },
-          { dia: "Lunes", inicio: "08:00", fin: "10:00" },
-        ],
-      },
-    ],
-  },
-  {
-    codigo: "CUR102",
-    nombre: "Cálculo II",
-    creditos: 4,
-    opciones: [
-      {
-        nombre: "Ing. Ramos",
-        horarios: [
-          { dia: "Miércoles", inicio: "08:00", fin: "10:00" },
-          { dia: "Viernes", inicio: "17:00", fin: "19:00" },
-        ],
-      },
-      {
-        nombre: "Ing. Chávez",
-        horarios: [{ dia: "Miércoles", inicio: "10:00", fin: "12:00" }],
-      },
-      {
-        nombre: "Lic. López",
-        horarios: [{ dia: "Martes", inicio: "08:00", fin: "10:00" }],
-      },
-    ],
-  },
-  {
-    codigo: "CUR103",
-    nombre: "Física I",
-    creditos: 5,
-    opciones: [
-      {
-        nombre: "Ing. Chávez",
-        horarios: [
-          { dia: "Jueves", inicio: "11:00", fin: "13:00" },
-          { dia: "Jueves", inicio: "11:00", fin: "13:00" },
-        ],
-      },
-      {
-        nombre: "Dr. Salazar",
-        horarios: [
-          { dia: "Jueves", inicio: "15:00", fin: "17:00" },
-          { dia: "Jueves", inicio: "11:00", fin: "13:00" },
-        ],
-      },
-      {
-        nombre: "Ing. Rodríguez",
-        horarios: [{ dia: "Martes", inicio: "15:00", fin: "17:00" }],
-      },
-    ],
-  },
-];
+        id: Math.floor(Math.random() * 1000),
+        teacher: {
+          id: Math.floor(Math.random() * 100),
+          firstName: "María",
+          lastName: "González"
+        },
+        code: `${courseId}-B`,
+        period: "2025-01", 
+        schedule: "14:00 - 16:00"
+      }
+    ];
+  }
+};
+
+// Función para convertir datos de API a formato interno
+const transformApiDataToCourses = async (apiCourses: ApiCourse[]): Promise<Curso[]> => {
+  const courses: Curso[] = [];
+  
+  for (const apiCourse of apiCourses) {
+    const enrollmentOptions = await fetchEnrollmentOptions(apiCourse.id);
+    
+    const opciones: Docente[] = enrollmentOptions.map(option => ({
+      id: option.id,
+      nombre: `${option.teacher.firstName} ${option.teacher.lastName}`,
+      codigo: option.code,
+      horarios: parseSchedule(option.schedule)
+    }));
+    
+    courses.push({
+      id: apiCourse.id,
+      codigo: apiCourse.code,
+      nombre: apiCourse.name,
+      creditos: Math.floor(Math.random() * 3) + 3, // 3-5 créditos aleatorios
+      opciones
+    });
+  }
+  
+  return courses;
+};
 
 const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const horas = Array.from(
@@ -103,6 +183,38 @@ export default function Step0_SelectCourses({
   onComplete,
 }: StepProps) {
   const [selecciones, setSelecciones] = useState<Record<string, number>>({});
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const apiCourses = await fetchCourses();
+        if (apiCourses.length === 0) {
+          setError('No se pudieron cargar los cursos');
+          return;
+        }
+        
+        const transformedCourses = await transformApiDataToCourses(apiCourses);
+        setCursos(transformedCourses);
+        
+      } catch (err) {
+        console.error('Error loading course data:', err);
+        setError('Error al cargar los datos de cursos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!completed && !locked) {
+      loadData();
+    }
+  }, [completed, locked]);
 
   const handleSeleccion = (codigo: string, index: number) => {
     setSelecciones((prev) => ({ ...prev, [codigo]: index }));
@@ -135,6 +247,31 @@ export default function Step0_SelectCourses({
     });
   });
 
+  // Mostrar estado de carga
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">Cargando cursos...</span>
+      </div>
+    );
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-600 mb-4">{error}</div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       {completed ? (
@@ -163,7 +300,7 @@ export default function Step0_SelectCourses({
                   <option value="">-- Seleccionar docente --</option>
                   {curso.opciones.map((docente, idx) => (
                     <option key={idx} value={idx}>
-                      {docente.nombre} (
+                      {docente.nombre} ({docente.codigo}) - (
                       {docente.horarios
                         .map((h) => `${h.dia} ${h.inicio}-${h.fin}`)
                         .join(", ")}
@@ -233,7 +370,7 @@ export default function Step0_SelectCourses({
         <button
           className="w-auto px-6 py-2 bg-[#0F5BA8] text-white rounded-lg disabled:opacity-50"
           onClick={onComplete}
-          disabled={locked || Object.keys(selecciones).length < cursos.length}
+          disabled={loading || locked || Object.keys(selecciones).length < cursos.length}
         >
           Confirmar selección
         </button>
