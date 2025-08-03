@@ -28,6 +28,8 @@ export default function Step3_TuitionPayment({
   } | null>(null);
   const [loadingPayment, setLoadingPayment] = useState(true);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
 
   // Función para obtener los datos del payment
   const fetchPaymentData = async () => {
@@ -74,12 +76,72 @@ export default function Step3_TuitionPayment({
     }
   }, [completed, locked]);
 
+  // Función para procesar el pago
+  const processPayment = async () => {
+    try {
+      setProcessingPayment(true);
+      setShowProcessingModal(true);
+
+      if (!paymentData) {
+        throw new Error('No payment data available');
+      }
+
+      // Simular procesamiento por 2 segundos
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Llamar al servicio PUT /payments/{paymentId}
+      const response = await fetch(`http://localhost:8080/payments/${paymentData.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error processing payment: ${response.status}`);
+      }
+
+      console.log('Payment processed successfully');
+
+      // Cerrar modal y pasar al siguiente paso
+      setShowProcessingModal(false);
+      onComplete();
+
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      setShowProcessingModal(false);
+      alert('Error al procesar el pago. Por favor, inténtelo nuevamente.');
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
   const handleSeleccion = (nombre: string) => {
     setMedioSeleccionado(nombre);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Modal de procesamiento de pago */}
+      {showProcessingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+            <div className="mb-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Procesando Pago
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Por favor espere mientras procesamos su pago de matrícula...
+            </p>
+            <div className="flex items-center justify-center">
+              <span className="text-blue-600 font-medium">
+                {paymentData && `S/. ${paymentData.amount.toFixed(2)}`}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {completed ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="text-green-700 font-medium flex items-center">
@@ -222,10 +284,10 @@ export default function Step3_TuitionPayment({
         <div className="flex justify-center mt-8">
           <button
             className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            onClick={onComplete}
-            disabled={locked || !medioSeleccionado || loadingPayment}
+            onClick={processPayment}
+            disabled={locked || !medioSeleccionado || loadingPayment || processingPayment}
           >
-            {loadingPayment ? 'Cargando...' : `Procesar pago de matrícula (S/. ${paymentData?.amount.toFixed(2)})`}
+            {loadingPayment ? 'Cargando...' : processingPayment ? 'Procesando...' : `Procesar pago de matrícula (S/. ${paymentData?.amount.toFixed(2)})`}
           </button>
         </div>
       )}
