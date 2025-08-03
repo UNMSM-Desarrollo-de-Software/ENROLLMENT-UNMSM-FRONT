@@ -22,7 +22,9 @@ export default function TrackingBar() {
   ]);
 
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
-  const [cursosSeleccionados, setCursosSeleccionados] = useState<CursoSeleccionado[]>([]);
+  const [cursosSeleccionados, setCursosSeleccionados] = useState<
+    CursoSeleccionado[]
+  >([]);
   const [planPagos, setPlanPagos] = useState<PlanPagos | undefined>(undefined);
 
   const onCompleteStep = (index: number) => {
@@ -50,9 +52,20 @@ export default function TrackingBar() {
 
     switch (index) {
       case 0:
-        return <Step0_SelectCourses {...stepProps} onSelectionChange={handleSelectionChange} />;
+        return (
+          <Step0_SelectCourses
+            {...stepProps}
+            onSelectionChange={handleSelectionChange}
+          />
+        );
       case 1:
-        return <Step1_PaymentPlan {...stepProps} cursosSeleccionados={cursosSeleccionados} onPlanChange={handlePlanChange} />;
+        return (
+          <Step1_PaymentPlan
+            {...stepProps}
+            cursosSeleccionados={cursosSeleccionados}
+            onPlanChange={handlePlanChange}
+          />
+        );
       case 2:
         return (
           <Step2_Commitment
@@ -92,31 +105,52 @@ export default function TrackingBar() {
 
   return (
     <div className="w-full px-4 py-12">
-      {/* Barra horizontal */}
+      {/* Barra de progreso */}
       <div className="relative w-full">
-        <div className="absolute top-[16px] left-0 w-full h-5 bg-[#D2D2D2] rounded-full z-0"></div>
+        <div className="absolute top-[14px] left-0 w-full h-[6px] bg-[#D2D2D2] rounded-full z-0"></div>
 
-        <div className="flex justify-between items-start relative z-10">
+        <div className="flex justify-between items-center relative z-10">
           {steps.map((step, index) => {
             const isActive = index === activeIndex;
+            const isCompleted = step.completed;
+
             return (
               <div
                 key={index}
-                className="flex flex-col items-center w-24 cursor-pointer"
+                className="flex flex-col items-center flex-1 cursor-pointer group"
                 onClick={() => setActiveIndex(index)}
               >
-                <div className="h-12 flex items-center justify-center">
-                  <div
-                    className={`w-10 h-10 rounded-full ${
-                      isActive
-                        ? "bg-[#956966]"
-                        : step.completed
-                        ? "bg-green-600"
-                        : "bg-[#611E1A]"
-                    }`}
-                  ></div>
+                <div
+                  className={`relative w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                    isCompleted
+                      ? "bg-green-600 border-green-600"
+                      : isActive
+                      ? "bg-[#956966] border-[#956966]"
+                      : "bg-[#611E1A] border-[#611E1A]"
+                  }`}
+                >
+                  {isCompleted ? (
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  ) : (
+                    <span className="text-white text-sm font-semibold">
+                      {index + 1}
+                    </span>
+                  )}
                 </div>
-                <span className="mt-2 text-center text-sm font-medium leading-tight">
+
+                <span className="mt-2 text-xs text-gray-700 group-hover:text-[#956966] transition-colors duration-200 font-medium">
                   {step.label}
                 </span>
               </div>
@@ -125,12 +159,12 @@ export default function TrackingBar() {
         </div>
       </div>
 
-      {/* Contenido dinámico */}
-      <div className="mt-10 p-6 bg-white border border-gray-200 rounded shadow-md w-full h-auto overflow-auto">
+      {/* Contenido */}
+      <div className="mt-12 px-6 py-8 bg-white border border-gray-200 rounded-2xl shadow-sm w-full transition-all duration-300">
         {activeIndex !== null ? (
           renderStepContent(activeIndex)
         ) : (
-          <p className="text-center text-gray-500 italic">
+          <p className="text-center text-gray-400 italic">
             Proceso finalizado o sin selección activa.
           </p>
         )}
