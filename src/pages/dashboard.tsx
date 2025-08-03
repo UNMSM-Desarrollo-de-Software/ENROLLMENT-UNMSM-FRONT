@@ -11,7 +11,7 @@ interface Enrollment {
 }
 
 export default function DashboardPage() {
-  const [enrollments, setEnrollments] = useState<Enrollment[] | null>(null);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function DashboardPage() {
         setEnrollments(data);
       } catch (error) {
         console.error("Error cargando matrículas:", error);
-        setEnrollments(null);
+        setEnrollments([]);
       } finally {
         setLoading(false);
       }
@@ -42,19 +42,20 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) return <p>Cargando...</p>;
-  if (!enrollments || enrollments.length === 0) return <p>No hay resultados</p>;
   return (
     <>
       <Layout>
         <FormTitle text="Matrículas" />
-        <ul>
+       {
+        enrollments.length > 0 ?  <ul>
           {enrollments.map((e, index) => (
             <li key={index}>
               Curso: {e.status}, Créditos: {e.period}
             </li>
           ))}
         </ul>
-        <TrackingBar />
+        : <TrackingBar />
+       }
       </Layout>
     </>
   );

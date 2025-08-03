@@ -1,5 +1,5 @@
-import FormTitle from "@/utilities/form-title";
-import Layout from "@/utilities/layout";
+import FormTitle from "./utils/formTitle";
+import Layout from "./utils/layout";
 
 export default function Courses() {
   return (
