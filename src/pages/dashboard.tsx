@@ -51,9 +51,41 @@ export default function DashboardPage() {
 
         const data = await res.json();
         setEnrollments(data);
+
+        // Actualizar localStorage con los enrollments más recientes
+        if (data && data.length > 0) {
+          // Buscar el enrollment más reciente o en proceso
+          const activeEnrollment = data.find((enrollment: Enrollment) => 
+            ["1", "2", "3", "4", "5"].includes(enrollment.status)
+          ) || data[0]; // Si no hay uno en proceso, tomar el primero
+
+          // Actualizar localStorage con el enrollment activo
+          localStorage.setItem('enrollment', JSON.stringify(activeEnrollment));
+          localStorage.setItem('currentEnrollment', JSON.stringify(activeEnrollment));
+          
+          console.log('localStorage updated with active enrollment:', activeEnrollment);
+        } else {
+          // Si no hay enrollments, limpiar localStorage
+          localStorage.removeItem('enrollment');
+          localStorage.removeItem('currentEnrollment');
+          localStorage.removeItem('selectedCourses');
+          localStorage.removeItem('paymentPlan');
+          localStorage.removeItem('studentData');
+          
+          console.log('No enrollments found, localStorage cleared');
+        }
       } catch (error) {
         console.error("Error cargando matrículas:", error);
         setEnrollments([]);
+        
+        // En caso de error, también limpiar localStorage
+        localStorage.removeItem('enrollment');
+        localStorage.removeItem('currentEnrollment');
+        localStorage.removeItem('selectedCourses');
+        localStorage.removeItem('paymentPlan');
+        localStorage.removeItem('studentData');
+        
+        console.log('Error fetching enrollments, localStorage cleared');
       } finally {
         setLoading(false);
       }
@@ -67,8 +99,11 @@ export default function DashboardPage() {
   };
 
   const continueEnrollment = (enrollment: Enrollment) => {
-    // Guardar el enrollment en localStorage para continuar el proceso
+    // Actualizar el enrollment en localStorage para continuar el proceso
     localStorage.setItem('enrollment', JSON.stringify(enrollment));
+    localStorage.setItem('currentEnrollment', JSON.stringify(enrollment));
+    
+    console.log('Continuing enrollment with updated data:', enrollment);
     router.push('/enrollment/trackingBar');
   };
 
