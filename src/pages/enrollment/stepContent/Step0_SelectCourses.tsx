@@ -96,7 +96,7 @@ const fetchCourses = async (): Promise<ApiCourse[]> => {
     return [
       { id: 9, code: "CURS009", name: "GESTIÓN DE LA CALIDAD DEL SOFTWARE" },
       { id: 10, code: "CURS010", name: "ENTORNOS METODOLÓGICOS DE DESARROLLO DE SOFTWARE" },
-      { id: 11, code: "CURS011", name: "DIRECCIÓN DE TESIS II" },
+      { id: 11, code: "CURS011", name: "DIRECCIÓN DE TESIS III" },
       { id: 12, code: "CURS012", name: "HABILIDADES DIRECTIVAS EN GESTIÓN" }
     ];
   }
@@ -272,9 +272,11 @@ export default function Step0_SelectCourses({
   // Mostrar estado de carga
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Cargando cursos...</span>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Cargando cursos...</span>
+        </div>
       </div>
     );
   }
@@ -282,125 +284,168 @@ export default function Step0_SelectCourses({
   // Mostrar error
   if (error) {
     return (
-      <div className="text-center py-8">
-        <div className="text-red-600 mb-4">{error}</div>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Reintentar
-        </button>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-12">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 mb-4 font-medium">{error}</div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="max-w-screen-2xl mx-auto p-6">
       {completed ? (
-        <div className="text-green-700 font-medium">
-          ✅ Selección registrada.
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="text-green-700 font-medium flex items-center">
+            <span className="text-green-600 mr-2">✅</span>
+            Selección registrada correctamente
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row gap-4 w-full">
-          <div className="md:w-1/3 w-full">
-            <h3 className="text-md font-semibold mb-2">
-              Seleccione cursos y docentes:
-            </h3>
-            {cursos.map((curso) => (
-              <div key={curso.codigo} className="border rounded p-4 mb-4">
-                <h3 className="font-semibold">
-                  {curso.nombre} ({curso.creditos} créditos)
-                </h3>
-                <select
-                  disabled={locked}
-                  className="mt-2 p-2 border rounded w-full"
-                  value={selecciones[curso.codigo] ?? ""}
-                  onChange={(e) =>
-                    handleSeleccion(curso.codigo, parseInt(e.target.value))
-                  }
-                >
-                  <option value="">-- Seleccionar docente --</option>
-                  {curso.opciones.map((docente, idx) => (
-                    <option key={idx} value={idx}>
-                      {docente.nombre} ({docente.codigo}) - (
-                      {docente.horarios
-                        .map((h) => `${h.dia} ${h.inicio}-${h.fin}`)
-                        .join(", ")}
-                      )
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold mb-2 text-gray-800">Selección de Cursos</h2>
+            <p className="text-gray-600 mb-6">Seleccione los cursos y docentes para su matrícula</p>
           </div>
 
-          {/* Horario visual tipo grilla */}
-          <div className="w-full md:w-2/3">
-            <h3 className="text-md font-semibold mb-2">Horario semanal:</h3>
-            <div className="overflow-auto">
-              <div className="grid grid-cols-[80px_repeat(5,minmax(150px,1fr))] border">
-                {/* Cabecera */}
-                <div className="border p-2 font-bold bg-gray-100">Hora</div>
-                {dias.map((dia) => (
-                  <div
-                    key={dia}
-                    className="border p-2 font-bold bg-gray-100 text-center"
-                  >
-                    {dia}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Panel de selección de cursos */}
+            <div className="xl:col-span-1">
+              <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                Cursos Disponibles
+              </h3>
+              <div className="space-y-4">
+                {cursos.map((curso) => (
+                  <div key={curso.codigo} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      {curso.nombre}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {curso.codigo} • {curso.creditos} créditos
+                    </p>
+                    <select
+                      disabled={locked}
+                      className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={selecciones[curso.codigo] ?? ""}
+                      onChange={(e) =>
+                        handleSeleccion(curso.codigo, parseInt(e.target.value))
+                      }
+                    >
+                      <option value="">-- Seleccionar docente --</option>
+                      {curso.opciones.map((docente, idx) => (
+                        <option key={idx} value={idx}>
+                          {docente.nombre} ({docente.codigo}) - (
+                          {docente.horarios
+                            .map((h) => `${h.dia} ${h.inicio}-${h.fin}`)
+                            .join(", ")}
+                          )
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 ))}
+              </div>
+            </div>
 
-                {/* Celdas */}
-                {horas.map((hora) => (
-                  <div key={hora} className="contents">
-                    <div className="border p-2 text-sm bg-gray-50">{hora}</div>
-                    {dias.map((dia) => {
-                      const clave = `${dia}-${hora}`;
-                      const bloques = celdasMap.get(clave) || [];
-
-                      const isConflict = bloques.length > 1;
-
-                      return (
-                        <div
-                          key={clave}
-                          className={`border p-1 text-xs text-center h-[48px] overflow-hidden ${
-                            bloques.length
-                              ? isConflict
-                                ? "bg-red-100 text-red-900 font-bold"
-                                : "bg-blue-100 text-blue-900 font-medium"
-                              : ""
-                          }`}
-                        >
-                          {bloques.map((b, i) => (
-                            <div key={i}>
-                              {b.curso}
-                              <br />
-                              <span className="text-[11px]">{b.docente}</span>
-                            </div>
-                          ))}
+            {/* Horario visual tipo grilla */}
+            <div className="xl:col-span-3">
+              <h3 className="text-lg font-semibold mb-4 text-gray-700">Horario Semanal</h3>
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div className="p-4">
+                  {/* Contenedor con scroll horizontal */}
+                  <div className="overflow-x-auto overflow-y-hidden">
+                    <div className="min-w-[1000px]"> {/* Ancho mínimo aumentado */}
+                      <div className="grid grid-cols-[120px_repeat(5,1fr)] border border-gray-200 rounded-lg overflow-hidden">
+                        {/* Cabecera */}
+                        <div className="bg-gray-100 border-r border-gray-200 p-3 font-bold text-gray-700 text-center sticky left-0 z-10">
+                          Hora
                         </div>
-                      );
-                    })}
+                        {dias.map((dia) => (
+                          <div
+                            key={dia}
+                            className="bg-gray-100 border-r border-gray-200 last:border-r-0 p-3 font-bold text-gray-700 text-center min-w-[180px]"
+                          >
+                            {dia}
+                          </div>
+                        ))}
+
+                        {/* Celdas */}
+                        {horas.map((hora) => (
+                          <div key={hora} className="contents">
+                            <div className="bg-gray-50 border-r border-b border-gray-200 p-2 text-sm text-gray-600 text-center sticky left-0 z-10">
+                              {hora}
+                            </div>
+                            {dias.map((dia) => {
+                              const clave = `${dia}-${hora}`;
+                              const bloques = celdasMap.get(clave) || [];
+                              const isConflict = bloques.length > 1;
+
+                              return (
+                                <div
+                                  key={clave}
+                                  className={`border-r border-b border-gray-200 last:border-r-0 p-3 text-xs text-center h-[52px] overflow-hidden min-w-[180px] ${
+                                    bloques.length
+                                      ? isConflict
+                                        ? "bg-red-100 text-red-900 font-bold border-red-300"
+                                        : "bg-blue-100 text-blue-900 font-medium border-blue-300"
+                                      : "bg-white"
+                                  }`}
+                                >
+                                  {bloques.map((b, i) => (
+                                    <div key={i} className="leading-tight">
+                                      <div className="font-medium text-[11px] truncate" title={b.curso}>
+                                        {b.curso}
+                                      </div>
+                                      <div className="text-[10px] text-gray-600 truncate" title={b.docente}>
+                                        {b.docente}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                ))}
+                  
+                  {/* Indicador de scroll */}
+                  <div className="mt-2 text-xs text-gray-500 text-center">
+                    💡 Desplace horizontalmente para ver todos los días de la semana
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
-      <div className="flex justify-center mt-6">
+      
+      {/* Botón de confirmación */}
+      <div className="flex justify-center mt-8">
         <button
-          className="w-auto px-6 py-2 bg-[#0F5BA8] text-white rounded-lg disabled:opacity-50"
+          className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={onComplete}
-          disabled={loading || locked || Object.keys(selecciones).length < cursos.length}
+          disabled={loading || locked || Object.keys(selecciones).length === 0}
         >
           Confirmar selección
         </button>
       </div>
+
       {locked && !completed && (
-        <p className="text-red-600 mt-4 text-sm">
-          Este paso ya no se puede modificar.
-        </p>
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 text-sm font-medium">
+            ⚠️ Este paso ya no se puede modificar.
+          </p>
+        </div>
       )}
     </div>
   );

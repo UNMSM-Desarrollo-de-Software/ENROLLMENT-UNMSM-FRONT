@@ -40,6 +40,13 @@ export default function Step1_PaymentPlan({
     setCuotas(nuevasCuotas);
   };
 
+  // Generar plan automáticamente cuando cambien el número de cuotas o el monto total
+  useEffect(() => {
+    if (montoTotal > 0 && numeroCuotas > 0 && !completed) {
+      generarPlan();
+    }
+  }, [montoTotal, numeroCuotas, completed]);
+
   // Notificar cambios en el plan de pagos
   useEffect(() => {
     if (cuotas.length > 0 && onPlanChange) {
@@ -56,101 +63,120 @@ export default function Step1_PaymentPlan({
   }, [cuotas, montoTotal, numeroCuotas, onPlanChange]);
 
   return (
-    <div className="w-full">
+    <div className="max-w-4xl mx-auto p-6">
       {completed ? (
-        <div className="text-green-700 font-medium">
-          ✅ Plan de pago confirmado.
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="text-green-700 font-medium flex items-center">
+            <span className="text-green-600 mr-2">✅</span>
+            Plan de pago confirmado correctamente
+          </div>
         </div>
       ) : (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">
-            Configuración del plan de pagos:
-          </h3>
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold mb-2 text-gray-800">Plan de Pagos</h2>
+            <p className="text-gray-600 mb-6">Configure su plan de pagos personalizado</p>
+          </div>
 
           {cursosSeleccionados.length > 0 && (
-            <div className="mb-4 p-4 bg-gray-50 rounded">
-              <h4 className="font-medium mb-2">Cursos seleccionados:</h4>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-gray-700">Cursos Seleccionados</h3>
               <div className="space-y-2">
                 {cursosSeleccionados.map((curso, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span>{curso.nombre}</span>
-                    <span>{curso.creditos} créditos - S/. {curso.creditos * PRECIO_POR_CREDITO}</span>
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-blue-200 last:border-b-0">
+                    <div>
+                      <span className="font-medium text-gray-800">{curso.nombre}</span>
+                      <span className="text-sm text-gray-600 ml-2">({curso.codigo})</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-medium text-gray-800">{curso.creditos} créditos</span>
+                      <div className="text-sm text-gray-600">S/. {curso.creditos * PRECIO_POR_CREDITO}</div>
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-2 pt-2 border-t border-gray-300 font-semibold">
-                Total: {totalCreditos} créditos - S/. {montoCalculado}
+              <div className="mt-4 pt-3 border-t border-blue-300 flex justify-between items-center">
+                <span className="font-semibold text-gray-800">Total:</span>
+                <div className="text-right">
+                  <div className="font-semibold text-gray-800">{totalCreditos} créditos</div>
+                  <div className="text-lg font-bold text-blue-600">S/. {montoCalculado}</div>
+                </div>
               </div>
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="block mb-1 font-medium">
-              Monto total a pagar (S/):
-            </label>
-            <input
-              type="number"
-              className="border rounded p-2 w-full"
-              value={montoTotal}
-              disabled={locked}
-              onChange={(e) => setMontoTotal(parseFloat(e.target.value))}
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <label className="block mb-2 font-semibold text-gray-700">
+                Monto total a pagar
+              </label>
+              <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-semibold text-lg">
+                S/ {montoTotal.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Calculado automáticamente según los cursos seleccionados
+              </p>
+            </div>
 
-          <div className="mb-4">
-            <label className="block mb-1 font-medium">Número de cuotas:</label>
-            <input
-              type="number"
-              className="border rounded p-2 w-full"
-              value={numeroCuotas}
-              disabled={locked}
-              min={1}
-              onChange={(e) => setNumeroCuotas(parseInt(e.target.value))}
-            />
-          </div>
-
-          <div className="mb-4">
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-              onClick={generarPlan}
-              disabled={locked || montoTotal <= 0 || numeroCuotas <= 0}
-            >
-              Generar plan de pagos
-            </button>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <label className="block mb-3 font-semibold text-gray-700">Número de cuotas</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map((numero) => (
+                  <button
+                    key={numero}
+                    className={`p-3 rounded-lg font-medium text-sm transition-colors border-2 ${
+                      numeroCuotas === numero
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                    } ${locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => !locked && setNumeroCuotas(numero)}
+                    disabled={locked}
+                  >
+                    {numero} {numero === 1 ? 'cuota' : 'cuotas'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {cuotas.length > 0 && (
-            <div className="overflow-auto">
-              <table className="w-full border">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="border p-2">#</th>
-                    <th className="border p-2">Monto (S/)</th>
-                    <th className="border p-2">Fecha de vencimiento</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cuotas.map((cuota) => (
-                    <tr key={cuota.numero}>
-                      <td className="border p-2 text-center">{cuota.numero}</td>
-                      <td className="border p-2 text-right">
-                        {cuota.monto.toFixed(2)}
-                      </td>
-                      <td className="border p-2 text-center">
-                        {cuota.vencimiento}
-                      </td>
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-700">Plan de Pagos Generado</h3>
+              </div>
+              <div className="overflow-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-100 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Cuota</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-700">Monto (S/)</th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-700">Fecha de vencimiento</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {cuotas.map((cuota) => (
+                      <tr key={cuota.numero} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-800 font-medium">#{cuota.numero}</td>
+                        <td className="px-4 py-3 text-right text-gray-800 font-semibold">
+                          S/. {cuota.monto.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3 text-center text-gray-600">
+                          {cuota.vencimiento}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      <div className="flex justify-center mt-6">
+      {/* Botón de confirmación */}
+      <div className="flex justify-center mt-8">
         <button
-          className="w-auto px-6 py-2 bg-[#0F5BA8] text-white rounded-lg disabled:opacity-50"
+          className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={onComplete}
           disabled={locked || cuotas.length === 0}
         >
@@ -159,9 +185,11 @@ export default function Step1_PaymentPlan({
       </div>
 
       {locked && !completed && (
-        <p className="text-red-600 mt-4 text-sm">
-          Este paso ya no se puede modificar.
-        </p>
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 text-sm font-medium">
+            ⚠️ Este paso ya no se puede modificar.
+          </p>
+        </div>
       )}
     </div>
   );

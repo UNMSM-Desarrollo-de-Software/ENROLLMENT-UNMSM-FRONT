@@ -71,93 +71,150 @@ export default function Step4_Certificate({
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6">
       {/* Validación de datos necesarios */}
       {(!cursosSeleccionados.length || !planPagos || !alumno) ? (
-        <div className="text-center py-8">
-          <div className="text-yellow-600 mb-4">
-            ⚠️ Faltan datos necesarios para generar la constancia
+        <div className="text-center py-12">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md mx-auto">
+            <div className="text-yellow-600 mb-4 font-medium">
+              ⚠️ Faltan datos necesarios para generar la constancia
+            </div>
+            <div className="text-sm text-gray-600 mb-4">
+              {!cursosSeleccionados.length && "• No hay cursos seleccionados"}
+              {!planPagos && "• No hay plan de pagos confirmado"}
+              {!alumno && "• No hay información del alumno"}
+            </div>
+            <p className="text-sm text-gray-700">
+              Por favor, complete todos los pasos anteriores para continuar.
+            </p>
           </div>
-          <div className="text-sm text-gray-600">
-            {!cursosSeleccionados.length && "• No hay cursos seleccionados"}
-            {!planPagos && "• No hay plan de pagos confirmado"}
-            {!alumno && "• No hay información del alumno"}
-          </div>
-          <p className="mt-4 text-sm">
-            Por favor, complete todos los pasos anteriores para continuar.
-          </p>
         </div>
       ) : (
-        <>
-          <h2 className="text-xl font-bold mb-4 text-green-700">
-            🎓 Matrícula completada exitosamente
-          </h2>
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-3 text-green-700">
+              🎓 ¡Matrícula Completada Exitosamente!
+            </h2>
+            <p className="text-gray-600">Su proceso de matrícula ha sido finalizado correctamente</p>
+          </div>
 
           {/* Resumen de la matrícula */}
-          <div className="mb-6 p-4 bg-green-50 rounded-lg">
-            <h3 className="font-semibold mb-3">Resumen de tu matrícula:</h3>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Resumen de su Matrícula</h3>
             
-            <div className="mb-4">
-              <h4 className="font-medium text-sm mb-2">Datos del estudiante:</h4>
-              <p className="text-sm"><strong>Nombre:</strong> {alumno.nombre}</p>
-              <p className="text-sm"><strong>Código:</strong> {alumno.codigo}</p>
-              <p className="text-sm"><strong>Carrera:</strong> {alumno.carrera}</p>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="font-medium text-sm mb-2">Cursos matriculados:</h4>
-              <div className="space-y-1">
-                {cursosSeleccionados.map((curso, index) => (
-                  <p key={index} className="text-sm">
-                    • {curso.nombre} ({curso.creditos} créditos) - {curso.docente}
-                  </p>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Datos del estudiante */}
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                  <span className="text-blue-600 mr-2">👤</span>
+                  Datos del Estudiante
+                </h4>
+                <div className="space-y-2">
+                  <p className="text-sm"><span className="font-medium">Nombre:</span> {alumno.nombre}</p>
+                  <p className="text-sm"><span className="font-medium">Código:</span> {alumno.codigo}</p>
+                  <p className="text-sm"><span className="font-medium">Carrera:</span> {alumno.carrera}</p>
+                </div>
               </div>
-              <p className="text-sm font-medium mt-2">
-                Total créditos: {cursosSeleccionados.reduce((sum, curso) => sum + curso.creditos, 0)}
+
+              {/* Cursos matriculados */}
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                  <span className="text-purple-600 mr-2">📚</span>
+                  Cursos Matriculados
+                </h4>
+                <div className="space-y-2">
+                  {cursosSeleccionados.map((curso, index) => (
+                    <div key={index} className="text-sm">
+                      <div className="font-medium text-gray-800">{curso.nombre}</div>
+                      <div className="text-gray-600">{curso.creditos} créditos • {curso.docente}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-green-200">
+                  <span className="text-sm font-semibold text-green-700">
+                    Total: {cursosSeleccionados.reduce((sum, curso) => sum + curso.creditos, 0)} créditos
+                  </span>
+                </div>
+              </div>
+
+              {/* Plan de pagos */}
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                  <span className="text-green-600 mr-2">💰</span>
+                  Plan de Pagos
+                </h4>
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    <span className="font-medium">Monto total:</span> 
+                    <span className="text-green-600 font-bold ml-1">S/. {planPagos.montoTotal.toFixed(2)}</span>
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Cuotas:</span> {planPagos.numeroCuotas}
+                  </p>
+                  <div className="mt-2 pt-2 border-t border-green-200">
+                    <div className="text-xs text-gray-600">
+                      {planPagos.cuotas.map((cuota, index) => (
+                        <div key={index}>
+                          Cuota {cuota.numero}: S/. {cuota.monto.toFixed(2)} - {cuota.fecha}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Constancia */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-700">Constancia de Matrícula</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Descargue o visualice su constancia oficial de matrícula
               </p>
             </div>
 
-            <div>
-              <h4 className="font-medium text-sm mb-2">Plan de pagos:</h4>
-              <p className="text-sm"><strong>Monto total:</strong> S/. {planPagos.montoTotal.toFixed(2)}</p>
-              <p className="text-sm"><strong>Cuotas:</strong> {planPagos.numeroCuotas}</p>
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  onClick={() => generarPDF(true)}
+                >
+                  <span className="mr-2">📄</span>
+                  Descargar Constancia PDF
+                </button>
+                <button
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  onClick={() => generarPDF(false)}
+                >
+                  <span className="mr-2">👁️</span>
+                  Ver Constancia en Línea
+                </button>
+              </div>
+
+              {pdfUrl && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-gray-700 mb-3">Vista previa de la constancia:</h4>
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <iframe
+                      src={pdfUrl}
+                      className="w-full h-[600px]"
+                      title="Constancia de matrícula"
+                    ></iframe>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          <p className="text-sm mb-6 text-gray-700">
-            A continuación puedes descargar tu constancia de matrícula:
-          </p>
-
-          <div className="flex gap-4 mb-6">
-            <button
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              onClick={() => generarPDF(true)}
-            >
-              Descargar constancia PDF
-            </button>
-            <button
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              onClick={() => generarPDF(false)}
-            >
-              Ver constancia en línea
-            </button>
-          </div>
-
-          {pdfUrl && (
-            <iframe
-              src={pdfUrl}
-              className="w-full h-[600px] border rounded-lg"
-              title="Constancia de matrícula"
-            ></iframe>
-          )}
-        </>
+        </div>
       )}
 
       {locked && !completed && (
-        <p className="text-red-600 text-sm">
-          Este paso ya no se puede modificar.
-        </p>
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 text-sm font-medium">
+            ⚠️ Este paso ya no se puede modificar.
+          </p>
+        </div>
       )}
     </div>
   );
