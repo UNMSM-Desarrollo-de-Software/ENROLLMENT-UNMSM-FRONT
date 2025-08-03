@@ -5,6 +5,8 @@ import Step0_SelectCourses from "./stepContent/Step0_SelectCourses";
 import Step1_PaymentPlan from "./stepContent/Step1_PaymentPlan";
 import Step2_Commitment from "./stepContent/Step2_Commitment";
 import Step4_Certificate from "./stepContent/Step4_Certificate";
+import Layout from "../utils/layout";
+import FormTitle from "../utils/formTitle";
 
 type Step = {
   label: string;
@@ -91,50 +93,53 @@ export default function TrackingBar() {
   };
 
   return (
-    <div className="w-full px-4 py-12">
-      {/* Barra horizontal */}
-      <div className="relative w-full">
-        <div className="absolute top-[16px] left-0 w-full h-5 bg-[#D2D2D2] rounded-full z-0"></div>
+    <Layout>
+      <FormTitle text="Matrícula" />
+      <div className="w-full px-4 py-12">
+        {/* Barra horizontal */}
+        <div className="relative w-full">
+          <div className="absolute top-[16px] left-0 w-full h-5 bg-[#D2D2D2] rounded-full z-0"></div>
 
-        <div className="flex justify-between items-start relative z-10">
-          {steps.map((step, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <div
-                key={index}
-                className="flex flex-col items-center w-24 cursor-pointer"
-                onClick={() => setActiveIndex(index)}
-              >
-                <div className="h-12 flex items-center justify-center">
-                  <div
-                    className={`w-10 h-10 rounded-full ${
-                      isActive
-                        ? "bg-[#956966]"
-                        : step.completed
-                        ? "bg-green-600"
-                        : "bg-[#611E1A]"
-                    }`}
-                  ></div>
+          <div className="flex justify-between items-start relative z-10">
+            {steps.map((step, index) => {
+              const isActive = index === activeIndex;
+              return (
+                <div
+                  key={index}
+                  className="flex flex-col items-center w-24 cursor-pointer"
+                  onClick={() => setActiveIndex(index)}
+                >
+                  <div className="h-12 flex items-center justify-center">
+                    <div
+                      className={`w-10 h-10 rounded-full ${
+                        isActive
+                          ? "bg-[#956966]"
+                          : step.completed
+                          ? "bg-green-600"
+                          : "bg-[#611E1A]"
+                      }`}
+                    ></div>
+                  </div>
+                  <span className="mt-2 text-center text-sm font-medium leading-tight">
+                    {step.label}
+                  </span>
                 </div>
-                <span className="mt-2 text-center text-sm font-medium leading-tight">
-                  {step.label}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Contenido dinámico */}
+        <div className="mt-10 p-6 bg-white border border-gray-200 rounded shadow-md w-full h-auto overflow-auto">
+          {activeIndex !== null ? (
+            renderStepContent(activeIndex)
+          ) : (
+            <p className="text-center text-gray-500 italic">
+              Proceso finalizado o sin selección activa.
+            </p>
+          )}
         </div>
       </div>
-
-      {/* Contenido dinámico */}
-      <div className="mt-10 p-6 bg-white border border-gray-200 rounded shadow-md w-full h-auto overflow-auto">
-        {activeIndex !== null ? (
-          renderStepContent(activeIndex)
-        ) : (
-          <p className="text-center text-gray-500 italic">
-            Proceso finalizado o sin selección activa.
-          </p>
-        )}
-      </div>
-    </div>
+    </Layout>
   );
 }

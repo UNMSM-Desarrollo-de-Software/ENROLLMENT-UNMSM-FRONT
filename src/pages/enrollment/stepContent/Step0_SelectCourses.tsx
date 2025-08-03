@@ -187,6 +187,7 @@ export default function Step0_SelectCourses({
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -219,6 +220,122 @@ export default function Step0_SelectCourses({
 
   const handleSeleccion = (codigo: string, index: number) => {
     setSelecciones((prev) => ({ ...prev, [codigo]: index }));
+  };
+
+  // Función para crear el enrollment
+  const createEnrollment = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/enrollments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          student: {
+            email: "jimena.ruizc@unmsm.edu.pe"
+          },
+          period: "2025-2"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error creating enrollment: ${response.status}`);
+      }
+
+      const enrollment = await response.json();
+      
+      // Almacenar el enrollment en localStorage para uso futuro
+      localStorage.setItem('enrollment', JSON.stringify(enrollment));
+      
+      return enrollment;
+    } catch (error) {
+      console.error('Error creating enrollment:', error);
+      throw error;
+    }
+  };
+
+  // Función para crear enrollment-sections
+  const createEnrollmentSections = async (enrollmentId: number, selectedCourses: any[]) => {
+    try {
+      const promises = selectedCourses.map(async (curso) => {
+        // Obtener el ID de la sección seleccionada
+        const selectedOption = cursos.find(c => c.codigo === curso.codigo)?.opciones[selecciones[curso.codigo]];
+        
+        if (!selectedOption) {
+          throw new Error(`No se encontró la opción seleccionada para el curso ${curso.codigo}`);
+        }
+
+        const response = await fetch('http://localhost:8080/enrollment-sections', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            enrollment: {
+              id: enrollmentId
+            },
+            section: {
+              id: selectedOption.id
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error creating enrollment-section for course ${curso.codigo}: ${response.status}`);
+        }
+
+        return await response.json();
+      });
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error('Error creating enrollment-sections:', error);
+      throw error;
+    }
+  };
+
+  // Función para manejar la confirmación
+  const handleConfirmSelection = async () => {
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      // Obtener cursos seleccionados
+      const cursosSeleccionados = Object.entries(selecciones).map(
+        ([codigo, idx]) => {
+          const curso = cursos.find((c) => c.codigo === codigo);
+          const docente = curso?.opciones[idx];
+          return {
+            codigo: curso?.codigo || "",
+            nombre: curso?.nombre || "",
+            creditos: curso?.creditos || 0,
+            docente: docente?.nombre || "",
+            horarios: docente?.horarios || []
+          };
+        }
+      ).filter(curso => curso.codigo !== "");
+
+      if (cursosSeleccionados.length === 0) {
+        throw new Error('No hay cursos seleccionados');
+      }
+
+      // 1. Crear enrollment
+      const enrollment = await createEnrollment();
+      
+      // 2. Crear enrollment-sections para cada curso seleccionado
+      await createEnrollmentSections(enrollment.id, cursosSeleccionados);
+
+      // 3. Continuar al siguiente paso
+      onComplete();
+      
+    } catch (error) {
+      console.error('Error confirming selection:', error);
+      setError(error instanceof Error ? error.message : 'Error al confirmar la selección');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Crear array de cursos seleccionados cuando cambie la selección
@@ -463,13 +580,29 @@ export default function Step0_SelectCourses({
       {/* Botón de confirmación */}
       <div className="flex justify-center mt-8">
         <button
-          className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          onClick={onComplete}
-          disabled={loading || locked || Object.keys(selecciones).length === 0}
+          className="bg-[#0F5BA8] hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+          onClick={handleConfirmSelection}
+          disabled={loading || locked || submitting || Object.keys(selecciones).length === 0}
         >
-          Confirmar selección
+          {submitting ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Procesando matrícula...
+            </>
+          ) : (
+            'Confirmar selección'
+          )}
         </button>
       </div>
+
+      {/* Mostrar error de envío si existe */}
+      {error && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-600 font-medium text-center">
+            {error}
+          </div>
+        </div>
+      )}
 
       {locked && !completed && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
